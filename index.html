@@ -9,6 +9,8 @@
 			body{
 				margin: 0;
 				font-family: "Open Sans";
+				background: #333;
+				overflow: hidden;
 			}
 			
 			#ui{
@@ -53,11 +55,17 @@
 			<input type="file" id="fileInput" />
 			<button id="load-btn">LOAD</button>
 			<button id="save-btn">SAVE</button>
-			
+			<button id="json-btn">EXPORT</button>
+
 			<div>
 				<div id="layer-physics-btn" class="layer-btn visible">Colliders</div>
 				<div id="layer-fg-btn" class="layer-btn visible">Foreground</div>
 				<div id="layer-bg-btn" class="layer-btn visible active">Background</div>
+			</div>
+			
+			<div>
+				<label>Class</label>
+				<input id="img-class"></input>
 			</div>
 		</div>
 		<script src="jquery-1.11.1.min.js"></script>

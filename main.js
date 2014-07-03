@@ -1,10 +1,14 @@
 var s,
 	loadButton = document.getElementById('load-btn'),
 	saveButton = document.getElementById('save-btn'),
+	jsonButton = document.getElementById('json-btn'),
 	fileInput = document.getElementById('fileInput'),
+	$imgClassInput = $('#img-class'),
 	$layerButtons = $('.layer-btn'),
 	$ui = $('#ui'),
-	activeLayer = $('.layer-btn.active').attr('id'),
+	//$currentImg,
+	currentImg,
+	activeLayerId = $('.layer-btn.active').attr('id'),
 	CMD = false,
 	DRAGGING = false,
 	dragOrigin = {x: 0, y: 0},
@@ -13,8 +17,7 @@ var s,
 	worldGroup,
 	bgGroup,
 	fgGroup,
-	physicsGroup,
-	lastimage;
+	physicsGroup;
 
 buildSVG();
 addListeners();
@@ -54,12 +57,15 @@ function parseSVG() {
 
 	for (i = 0; i < images.length; i += 1) {
 		images[i].drag();
+		images[i].click(handle_img_CLICK);
 	}
 }
 
 function addListeners() {
 	loadButton.addEventListener('click', handle_loadButton_CLICK);
 	saveButton.addEventListener('click', handle_saveButton_CLICK);
+	jsonButton.addEventListener('click', handle_jsonButton_CLICK);
+	
 	fileInput.addEventListener('change', handle_LOAD);
 	document.addEventListener('keydown', handle_KEY_DOWN);
 	document.addEventListener('keyup', handle_KEY_UP);
@@ -68,7 +74,8 @@ function addListeners() {
 	document.body.addEventListener('mousedown', handle_MOUSEDOWN);
 	document.body.addEventListener('mouseup', handle_MOUSEUP);
 	
-	$layerButtons.bind('click', handle_layerBtns_CLICK);
+	$imgClassInput.on('change', handle_imgClassInput_CHANGE);
+	$layerButtons.click(handle_layerBtns_CLICK);
 }
 
 function toggleUI(){
@@ -76,12 +83,17 @@ function toggleUI(){
 }
 
 function duplicate() {
-	if (activeLayer == "layer-fg-btn") {
-		var image = lastimage.clone();
+	if (activeLayerId == "layer-fg-btn") {
+		var image = currentImg.clone();
+		image.click(handle_img_CLICK);
 		image.drag();
 		fgGroup.add(image);
-		lastimage = image;
+		currentImg = image;
 	}
+}
+
+function handle_imgClassInput_CHANGE(e) {
+	currentImg.node.className.baseVal = $imgClassInput.val();
 }
 
 function handle_MOUSEDOWN(e) {
@@ -118,14 +130,22 @@ function handle_DROP(e) {
 function handle_IMG_LOAD(e) {
 	var image = s.image(e.target.result, 0, 0);
 	
-	if (activeLayer == "layer-bg-btn") {
+	if (activeLayerId == "layer-bg-btn") {
 		bgGroup.add(image);
-	} else if (activeLayer == "layer-fg-btn") {
+	} else if (activeLayerId == "layer-fg-btn") {
 		image.drag();
+		image.bind('click', handle_img_CLICK);
 		image.attr({filter: filterTint});
 		fgGroup.add(image);
-		lastimage = image;
+		currentImg = image;
 	}
+}
+
+function handle_img_CLICK() {
+	var $this = $(this);
+		
+	currentImg = this;
+	$imgClassInput.val(this.node.className.baseVal);
 }
 
 function handle_layerBtns_CLICK(e) {
@@ -137,35 +157,41 @@ function handle_layerBtns_CLICK(e) {
 	
 	$layerButtons.removeClass('active');
 	$this.addClass('active');
-	activeLayer = $('.layer-btn.active').attr('id');
+	activeLayerId = $('.layer-btn.active').attr('id');
 	toggleVisibleGroups($this);
 }
 
 function toggleVisibleGroups($this) {
+	var group;
+	
 	if ($this.hasClass("visible")) {
 		switch ($this.attr('id')){
 			case "layer-bg-btn":
-				bgGroup.attr({opacity: 1});
+				group = bgGroup;
 			break;
 			case "layer-fg-btn":
-				fgGroup.attr({opacity: 1});
+				group = fgGroup;
 			break;
 			case "layer-physics-btn":
-				physicsGroup.attr({opacity: 1});
+				group = physicsGroup;
 			break;
 		}
+		group.attr({opacity: 1, 'pointer-events': 'auto'});
+		
 	} else {
 		switch ($this.attr('id')){
 			case "layer-bg-btn":
-				bgGroup.attr({opacity: 0});
+				group = bgGroup;
 			break;
 			case "layer-fg-btn":
-				fgGroup.attr({opacity: 0});
+				group = fgGroup;
 			break;
 			case "layer-physics-btn":
-				physicsGroup.attr({opacity: 0});
+				group = physicsGroup;
 			break;
 		}
+		group.attr({opacity: 0, 'pointer-events': 'none'});
+		
 	}
 }
 
@@ -182,18 +208,42 @@ function handle_LOAD(e) {
 }
 
 function handle_FILE_LOAD(e) {
-	var contentString,
-		content;
+	var contentString;
 		
 	s.remove();
 
 	contentString = e.target.result;
 	fragment = Snap.parse(contentString)
-	
 	document.body.appendChild(fragment.node);
-
 	s = Snap(document.getElementsByTagName('svg')[0]);
 	parseSVG();
+}
+
+function handle_jsonButton_CLICK() {
+	var filestring = '',
+		blob,
+		items,
+		item,
+		i,
+		matrix;
+	
+	filestring += "[";
+		
+	items = Snap.selectAll('#fg>image');
+	for (i = 0; i < items.length; i += 1) {
+		item = items[i];
+		matrix = item.attr('transform').globalMatrix;		
+		filestring += '{cl: "' + item.node.className.baseVal + '", x: ' + matrix.e + ', y: ' + matrix.f + '}';
+		
+		if (i < items.length - 1) {
+			filestring += ",";
+		}
+	}
+	
+	filestring += "]";
+	
+	blob = new Blob([filestring], {type: "text/plain;charset=utf-8"});	
+	saveAs(blob, "level.json");
 }
 
 function handle_saveButton_CLICK() {
@@ -206,21 +256,23 @@ function handle_saveButton_CLICK() {
 }
 
 function handle_KEY_DOWN(e) {
-	e.preventDefault();
-
 	console.log(e.keyCode);
 
 	switch(e.keyCode) {
 		case 72: //H
+			e.preventDefault();
 			toggleUI();
 		break;
 		case 32: //SPACE
+			e.preventDefault();
 			DRAGGING = true;
 		break;
 		case 91: //CMD
+			e.preventDefault();
 			CMD = true;
 		break;
 		case 68: //D
+			e.preventDefault();
 			if (CMD == true) {
 				duplicate();
 			}
