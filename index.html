@@ -32,7 +32,7 @@
 				display: none;
 			}
 			
-			#img-class{
+			input{
 				font-weight: bold;
 				font-size: 1.1em;
 			}
@@ -72,12 +72,16 @@
 	</head>
 	<body>
 		<div id="ui">
+			<input type="file" id="fileInput" />
 			<h2>LEVEL BUILDER</h2>
-			<input type="file" id="fileInput" />			
 			<section>
 				<button id="load-btn">LOAD</button>
 				<button id="save-btn">SAVE</button>
 				<button id="json-btn">EXPORT</button>
+			</section>
+			<section>
+				<label>File Name</label>
+				<input id="file-name" value="level_title"></input>
 			</section>
 			<section>
 				<div id="layer-physics-btn" class="layer-btn visible">Colliders</div>

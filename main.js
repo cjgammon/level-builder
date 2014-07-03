@@ -3,6 +3,7 @@ var s,
 	saveButton = document.getElementById('save-btn'),
 	jsonButton = document.getElementById('json-btn'),
 	fileInput = document.getElementById('fileInput'),
+	$filename = $('#file-name'),
 	$imgClassInput = $('#img-class'),
 	$layerButtons = $('.layer-btn'),
 	$ui = $('#ui'),
@@ -204,8 +205,12 @@ function handle_loadButton_CLICK() {
 }
 
 function handle_LOAD(e) {
-	var reader = new FileReader();
+	var reader = new FileReader(),
+		name;
+		
 	reader.addEventListener('load', handle_FILE_LOAD);
+	name = e.target.files[0].name.split('.');
+	$filename.val(name[0]);
 	reader.readAsText(e.target.files[0]); 
 }
 
@@ -246,7 +251,7 @@ function handle_jsonButton_CLICK() {
 	filestring += "]";
 	
 	blob = new Blob([filestring], {type: "text/plain;charset=utf-8"});	
-	saveAs(blob, "level.json");
+	saveAs(blob, $filename.val() + ".json");
 }
 
 function handle_saveButton_CLICK() {
@@ -255,7 +260,7 @@ function handle_saveButton_CLICK() {
 	
 	filestring = s.toString();
 	blob = new Blob([filestring], {type: "text/plain;charset=utf-8"});	
-	saveAs(blob, "level.svg");
+	saveAs(blob, $filename.val() + ".svg");
 }
 
 function handle_KEY_DOWN(e) {

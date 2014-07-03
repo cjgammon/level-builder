@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>Documents/Testing/level-builder/main.js</string>
+	<string>main.js</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -21,43 +21,43 @@
 	<integer>140</integer>
 	<key>metaData</key>
 	<dict>
-		<key>Documents/Testing/level-builder/index.html</key>
+		<key>index.html</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>10</integer>
+				<integer>18</integer>
 				<key>line</key>
-				<integer>11</integer>
+				<integer>36</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>0</integer>
+			<integer>19</integer>
 		</dict>
-		<key>Documents/Testing/level-builder/main.js</key>
+		<key>main.js</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
 				<integer>2</integer>
+				<key>line</key>
+				<integer>236</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>0</integer>
+			<integer>215</integer>
 		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
-		<string>Documents/Testing/level-builder/index.html</string>
-		<string>Documents/Testing/level-builder/main.js</string>
+		<string>index.html</string>
+		<string>main.js</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{489, 77}, {649, 780}}</string>
+	<string>{{568, 37}, {628, 827}}</string>
 </dict>
 </plist>
