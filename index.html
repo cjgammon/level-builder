@@ -32,12 +32,19 @@
 				display: none;
 			}
 			
+			#img-class{
+				font-weight: bold;
+				font-size: 1.1em;
+			}
+			
 			.layer-btn{
 				cursor: pointer;
+				font-weight: bold;
+				-webkit-user-select: none;
+				
 				padding: 0.5em;
 				background-color: rgba(255, 0, 0, 0.5);
 				border-bottom: 1px solid white;
-				-webkit-user-select: none;
 			}
 			
 			.layer-btn.visible{
@@ -47,26 +54,40 @@
 			.layer-btn.active{
 				border-right: 5px solid rgba(0, 100, 0, 1);
 			}
+			
+			section{
+				margin: 1em 0;
+			}
+			
+			button{
+				font-weight: bold;
+			}
+			
+			h2{
+				margin: 0.5em 0 0;
+				color: rgba(50, 150, 50, 1);
+				text-shadow: 1px 1px rgba(255, 255, 255, 1);
+			}
 		</style>
 	</head>
 	<body>
 		<div id="ui">
 			<h2>LEVEL BUILDER</h2>
-			<input type="file" id="fileInput" />
-			<button id="load-btn">LOAD</button>
-			<button id="save-btn">SAVE</button>
-			<button id="json-btn">EXPORT</button>
-
-			<div>
+			<input type="file" id="fileInput" />			
+			<section>
+				<button id="load-btn">LOAD</button>
+				<button id="save-btn">SAVE</button>
+				<button id="json-btn">EXPORT</button>
+			</section>
+			<section>
 				<div id="layer-physics-btn" class="layer-btn visible">Colliders</div>
 				<div id="layer-fg-btn" class="layer-btn visible">Foreground</div>
 				<div id="layer-bg-btn" class="layer-btn visible active">Background</div>
-			</div>
-			
-			<div>
+			</section>
+			<section>
 				<label>Class</label>
 				<input id="img-class"></input>
-			</div>
+			</section>
 		</div>
 		<script src="jquery-1.11.1.min.js"></script>
 		<script src="FileSaver.js"></script>

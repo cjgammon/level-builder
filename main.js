@@ -6,7 +6,6 @@ var s,
 	$imgClassInput = $('#img-class'),
 	$layerButtons = $('.layer-btn'),
 	$ui = $('#ui'),
-	//$currentImg,
 	currentImg,
 	activeLayerId = $('.layer-btn.active').attr('id'),
 	CMD = false,
@@ -73,6 +72,7 @@ function addListeners() {
 	document.body.addEventListener('drop', handle_DROP);
 	document.body.addEventListener('mousedown', handle_MOUSEDOWN);
 	document.body.addEventListener('mouseup', handle_MOUSEUP);
+	window.addEventListener('resize', handle_RESIZE);
 	
 	$imgClassInput.on('change', handle_imgClassInput_CHANGE);
 	$layerButtons.click(handle_layerBtns_CLICK);
@@ -83,13 +83,15 @@ function toggleUI(){
 }
 
 function duplicate() {
-	if (activeLayerId == "layer-fg-btn") {
-		var image = currentImg.clone();
-		image.click(handle_img_CLICK);
-		image.drag();
-		fgGroup.add(image);
-		currentImg = image;
-	}
+	var image = currentImg.clone();
+	image.click(handle_img_CLICK);
+	image.drag();
+	fgGroup.add(image);
+	currentImg = image;
+}
+
+function deleteImage() {
+	currentImg.remove();
 }
 
 function handle_imgClassInput_CHANGE(e) {
@@ -232,7 +234,8 @@ function handle_jsonButton_CLICK() {
 	items = Snap.selectAll('#fg>image');
 	for (i = 0; i < items.length; i += 1) {
 		item = items[i];
-		matrix = item.attr('transform').globalMatrix;		
+				
+		matrix = item.attr('transform').localMatrix;		
 		filestring += '{cl: "' + item.node.className.baseVal + '", x: ' + matrix.e + ', y: ' + matrix.f + '}';
 		
 		if (i < items.length - 1) {
@@ -260,8 +263,10 @@ function handle_KEY_DOWN(e) {
 
 	switch(e.keyCode) {
 		case 72: //H
-			e.preventDefault();
-			toggleUI();
+			if (CMD == true) {
+				e.preventDefault();
+				toggleUI();
+			}
 		break;
 		case 32: //SPACE
 			e.preventDefault();
@@ -272,9 +277,15 @@ function handle_KEY_DOWN(e) {
 			CMD = true;
 		break;
 		case 68: //D
-			e.preventDefault();
 			if (CMD == true) {
+				e.preventDefault();
 				duplicate();
+			}
+		break;
+		case 88: //X
+			if (CMD == true) {
+				e.preventDefault();
+				deleteImage();
 			}
 		break;
 	}
@@ -289,4 +300,9 @@ function handle_KEY_UP(e) {
 			CMD = false;
 		break;
 	}
+}
+
+function handle_RESIZE() {
+	s.attr({width: window.innerWidth});
+	s.attr({height: window.innerHeight});	
 }
