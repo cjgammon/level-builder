@@ -8,10 +8,60 @@
 		<style>
 			body{
 				margin: 0;
+				font-family: "Open Sans";
+			}
+			
+			#ui{
+				position: fixed;
+				top: 0;
+				left: 0;
+				color: white;
+				background: rgba(0, 0, 0, 0.5);
+				padding: 0.2em 1em;
+				height: 100%;
+				width: 200px;
+			}
+			
+			#ui.hidden{
+				display: none;
+			}
+			
+			#fileInput{
+				display: none;
+			}
+			
+			.layer-btn{
+				cursor: pointer;
+				padding: 0.5em;
+				background-color: rgba(255, 0, 0, 0.5);
+				border-bottom: 1px solid white;
+				-webkit-user-select: none;
+			}
+			
+			.layer-btn.visible{
+				background-color: rgba(0, 255, 0, 0.5);
+			}
+			
+			.layer-btn.active{
+				border-right: 5px solid rgba(0, 100, 0, 1);
 			}
 		</style>
 	</head>
 	<body>
+		<div id="ui">
+			<h2>LEVEL BUILDER</h2>
+			<input type="file" id="fileInput" />
+			<button id="load-btn">LOAD</button>
+			<button id="save-btn">SAVE</button>
+			
+			<div>
+				<div id="layer-physics-btn" class="layer-btn visible">Colliders</div>
+				<div id="layer-fg-btn" class="layer-btn visible">Foreground</div>
+				<div id="layer-bg-btn" class="layer-btn visible active">Background</div>
+			</div>
+		</div>
+		<script src="jquery-1.11.1.min.js"></script>
+		<script src="FileSaver.js"></script>
 		<script src="snap.svg.js"></script>
 		<script src="main.js"></script>
 	</body>
