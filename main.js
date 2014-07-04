@@ -7,17 +7,23 @@ var s,
 	$imgClassInput = $('#img-class'),
 	$layerButtons = $('.layer-btn'),
 	$ui = $('#ui'),
+	mouse = {x: 0, y: 0},
 	currentImg,
+	currentRect,
 	activeLayerId = $('.layer-btn.active').attr('id'),
+	HANDLE_SIZE = 10,
 	CMD = false,
 	DRAGGING = false,
+	DRAG = false,
+	DRAG_HANDLE = false,
 	dragOrigin = {x: 0, y: 0},
 	worldMatrix = new Snap.Matrix(),
 	filterTint,
 	worldGroup,
 	bgGroup,
 	fgGroup,
-	physicsGroup;
+	physicsGroup,
+	physicsBg;
 
 buildSVG();
 addListeners();
@@ -37,6 +43,14 @@ function buildSVG() {
 	fgGroup.attr({id: "fg"});
 	physicsGroup.attr({id: "physics"});
 
+	physicsBg = s.rect(0, 0, window.innerWidth, window.innerHeight);
+	physicsBg.attr({
+		id: 'physics-bg',
+		fill: 'rgba(0, 255, 0, 0.1)'
+	});
+	physicsBg.click(handle_physicsLayer_CLICK);
+	physicsGroup.add(physicsBg);
+
 	worldGroup.add(bgGroup);
 	worldGroup.add(fgGroup);
 	worldGroup.add(physicsGroup);
@@ -52,6 +66,8 @@ function parseSVG() {
 	bgGroup = s.select("#bg");
 	fgGroup = s.select("#fg");
 	physicsGroup = s.select("#physics");
+	physicsBg = s.select("#physics-bg");
+	physicsBg.click(handle_physicsLayer_CLICK);
 
 	images = fgGroup.selectAll('image');
 
@@ -73,8 +89,9 @@ function addListeners() {
 	document.body.addEventListener('drop', handle_DROP);
 	document.body.addEventListener('mousedown', handle_MOUSEDOWN);
 	document.body.addEventListener('mouseup', handle_MOUSEUP);
+	document.body.addEventListener('mousemove', handle_MOUSEMOVE);
 	window.addEventListener('resize', handle_RESIZE);
-	
+		
 	$imgClassInput.on('change', handle_imgClassInput_CHANGE);
 	$layerButtons.click(handle_layerBtns_CLICK);
 }
@@ -95,6 +112,84 @@ function deleteImage() {
 	currentImg.remove();
 }
 
+function addRect() {
+	var rectGroup,
+		rect,
+		handle;
+		
+	deselectRects();
+	
+	rectGroup = s.g();
+	rectGroup.transform('translate(' + mouse.x + ', ' + mouse.y + ')');
+	rectGroup.addClass('physics-block');
+	rectGroup.mousedown(handle_rectGroup_MOUSEDOWN);
+	rectGroup.drag();
+	physicsGroup.add(rectGroup);
+	currentRect = rectGroup;
+	
+	rect = s.rect(0, 0, 100, 100);
+	rect.attr({
+		fill: 'rgba(255, 0, 0, 0.25)',
+		stroke: 'white'
+	});
+	rectGroup.rect = rect;
+	rectGroup.add(rect);
+	
+	handle = s.rect(0, 0, HANDLE_SIZE, HANDLE_SIZE);
+	handle.transform('translate(' + (rect.attr('width') - (HANDLE_SIZE / 2)) + ', ' + (rect.attr('height') - (HANDLE_SIZE / 2)) + ')');
+	handle.attr({
+		fill: 'black',
+		stroke: '#ccc'
+	});
+	handle.group = rectGroup;
+	handle.drag();
+	handle.mousedown(handle_handle_MOUSEDOWN);
+	handle.mouseup(handle_handle_MOUSEUP);
+	handle.mousemove(handle_handle_MOUSEMOVE);
+	rectGroup.add(handle);
+	
+}
+
+function deselectRects() {
+	var rectGroups = Snap.selectAll('.physics-block'),
+		i;
+	
+	for (i = 0; i < rectGroups.length; i += 1) {
+		rectGroups[i].rect.attr({
+			stroke: 'rgba(255, 0, 0, 0.5)'
+		});
+	}
+}
+
+function handle_handle_MOUSEDOWN(e) {
+	e.stopPropagation();
+	DRAG_HANDLE = true;
+	this.group.undrag();
+}
+
+function handle_handle_MOUSEUP(e) {
+	DRAG_HANDLE = false
+	this.group.drag();
+}
+
+function handle_handle_MOUSEMOVE(e) {
+	var matrix = this.matrix;
+
+	this.group.rect.attr({width: matrix.e + (HANDLE_SIZE / 2)});
+	this.group.rect.attr({height: matrix.f + (HANDLE_SIZE / 2)});
+}
+
+function handle_rectGroup_MOUSEDOWN() {
+	deselectRects();
+	this.rect.attr({
+		stroke: 'rgba(255, 255, 255, 1)'
+	});
+}
+
+function handle_physicsLayer_CLICK() {
+	deselectRects();
+}
+
 function handle_imgClassInput_CHANGE(e) {
 	currentImg.node.className.baseVal = $imgClassInput.val();
 }
@@ -103,19 +198,24 @@ function handle_MOUSEDOWN(e) {
 	if (DRAGGING == true) {
 		dragOrigin.x = e.pageX;
 		dragOrigin.y = e.pageY;
-		document.body.addEventListener('mousemove', handle_MOUSEMOVE);
-	}
+		DRAG = true;
+	}	
 }
 
 function handle_MOUSEUP(e) {
-	document.body.removeEventListener('mousemove', handle_MOUSEMOVE);
+	DRAG = false;
+	DRAG_HANDLE = false;
 }
 
 function handle_MOUSEMOVE(e) {
-	worldMatrix.translate(e.pageX - dragOrigin.x, e.pageY - dragOrigin.y);
-	worldGroup.transform(worldMatrix.toTransformString());
-	dragOrigin.x = e.pageX;
-	dragOrigin.y = e.pageY;
+	mouse = {x: e.pageX, y: e.pageY};
+	
+	if (DRAG == true) {
+		worldMatrix.translate(e.pageX - dragOrigin.x, e.pageY - dragOrigin.y);
+		worldGroup.transform(worldMatrix.toTransformString());
+		dragOrigin.x = e.pageX;
+		dragOrigin.y = e.pageY;
+	}
 }
 
 function handle_DRAG_OVER(e) {
@@ -215,7 +315,8 @@ function handle_LOAD(e) {
 }
 
 function handle_FILE_LOAD(e) {
-	var contentString;
+	var contentString,
+		matrix;
 		
 	s.remove();
 
@@ -224,6 +325,9 @@ function handle_FILE_LOAD(e) {
 	document.body.appendChild(fragment.node);
 	s = Snap(document.getElementsByTagName('svg')[0]);
 	parseSVG();
+	
+	matrix = worldGroup.attr('transform').localMatrix;
+	worldMatrix.translate(matrix.e, matrix.f);
 }
 
 function handle_jsonButton_CLICK() {
@@ -278,6 +382,7 @@ function handle_KEY_DOWN(e) {
 			DRAGGING = true;
 		break;
 		case 91: //CMD
+		case 93:
 			e.preventDefault();
 			CMD = true;
 		break;
@@ -291,6 +396,12 @@ function handle_KEY_DOWN(e) {
 			if (CMD == true) {
 				e.preventDefault();
 				deleteImage();
+			}
+		break;
+		case 77: //M
+			if (CMD == true) {
+				e.preventDefault();
+				addRect();
 			}
 		break;
 	}
@@ -308,6 +419,8 @@ function handle_KEY_UP(e) {
 }
 
 function handle_RESIZE() {
+	physicsBg.attr({width: window.innerWidth});
+	physicsBg.attr({height: window.innerHeight});
 	s.attr({width: window.innerWidth});
 	s.attr({height: window.innerHeight});	
 }
