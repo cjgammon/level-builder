@@ -119,11 +119,15 @@ function toggleUI(){
 }
 
 function duplicate() {
-	var image = currentImg.clone();
-	image.click(handle_img_CLICK);
-	image.drag();
-	fgGroup.add(image);
-	currentImg = image;
+	if (activeLayerId == "layer-fg-btn") {
+		var image = currentImg.clone();
+		image.click(handle_img_CLICK);
+		image.drag();
+		fgGroup.add(image);
+		currentImg = image;
+	} else if (activeLayerId == "layer-physics-btn") {
+		
+	}
 }
 
 function deleteImage() {
@@ -173,7 +177,6 @@ function addRect() {
 	handle.mouseup(handle_handle_MOUSEUP);
 	handle.mousemove(handle_handle_MOUSEMOVE);
 	rectGroup.add(handle);
-	
 }
 
 function deselectRects() {
@@ -212,7 +215,6 @@ function handle_rectGroup_MOUSEDOWN() {
 		stroke: 'rgba(255, 255, 255, 1)'
 	});
 	
-	//TODO:: move to front
 	this.toBack();
 }
 
@@ -369,6 +371,8 @@ function handle_jsonButton_CLICK() {
 		blob,
 		items,
 		item,
+		rectGroups,
+		rectGroup,
 		i,
 		matrix;
 	
@@ -382,6 +386,23 @@ function handle_jsonButton_CLICK() {
 		filestring += '{cl: "' + item.node.className.baseVal + '", x: ' + matrix.e + ', y: ' + matrix.f + '}';
 		
 		if (i < items.length - 1) {
+			filestring += ",";
+		}
+	}
+	
+	filestring += "]";
+	filestring += "\n";
+	filestring += "[";
+	
+	//get all groups
+	rectGroups = Snap.selectAll('#physics>.physics-block');
+	for (i = 0; i < rectGroups.length; i += 1) {
+		rectGroup = rectGroups[i];
+		
+		matrix = rectGroup.attr('transform').localMatrix;	
+		filestring += '{cl: "' + 'wall' + '", x: ' + matrix.e + ', y: ' + matrix.f + ', w: ' + rectGroup.rect.attr('width') + ', h: ' + rectGroup.rect.attr('height') + '}';
+	
+		if (i < rectGroups.length - 1) {
 			filestring += ",";
 		}
 	}
