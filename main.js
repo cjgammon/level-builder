@@ -82,8 +82,15 @@ function parseSVG() {
 	rectGroups = Snap.selectAll('.physics-block');
 	for (i = 0; i < rectGroups.length; i += 1) {
 		rectGroup = rectGroups[i];
+		rectGroup.drag();
+		rectGroup.mousedown(handle_rectGroup_MOUSEDOWN);
 		rectGroup.rect = rectGroup.select('.physics-frame');
+		
 		handle = rectGroup.select('.physics-handle');
+		handle.drag();
+		handle.mousedown(handle_handle_MOUSEDOWN);
+		handle.mouseup(handle_handle_MOUSEUP);
+		handle.mousemove(handle_handle_MOUSEMOVE);
 		handle.group = rectGroup;
 	}
 }
@@ -121,6 +128,10 @@ function duplicate() {
 
 function deleteImage() {
 	currentImg.remove();
+}
+
+function deleteRect() {
+	currentRect.remove();	
 }
 
 function addRect() {
@@ -202,6 +213,7 @@ function handle_rectGroup_MOUSEDOWN() {
 	});
 	
 	//TODO:: move to front
+	this.toBack();
 }
 
 function handle_physicsLayer_CLICK() {
@@ -233,6 +245,8 @@ function handle_MOUSEMOVE(e) {
 		worldGroup.transform(worldMatrix.toTransformString());
 		dragOrigin.x = e.pageX;
 		dragOrigin.y = e.pageY;
+		
+		physicsBg.transform('translate(' + -worldMatrix.e + ', ' + -worldMatrix.f + ')');
 	}
 }
 
@@ -345,7 +359,9 @@ function handle_FILE_LOAD(e) {
 	parseSVG();
 	
 	matrix = worldGroup.attr('transform').localMatrix;
-	worldMatrix.translate(matrix.e, matrix.f);	
+	worldMatrix.translate(matrix.e, matrix.f);
+	
+	physicsBg.transform('translate(' + -worldMatrix.e + ', ' + -worldMatrix.f + ')');
 }
 
 function handle_jsonButton_CLICK() {
@@ -413,8 +429,11 @@ function handle_KEY_DOWN(e) {
 		case 88: //X
 			if (CMD == true) {
 				e.preventDefault();
-				deleteImage();
-				//TODO:: allow to delete physics block too
+				if (activeLayerId == "layer-fg-btn") {
+					deleteImage();
+				} else if (activeLayerId == "layer-physics-btn") {
+					deleteRect();	
+				}
 			}
 		break;
 		case 77: //M

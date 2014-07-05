@@ -96,6 +96,19 @@
 		<script src="jquery-1.11.1.min.js"></script>
 		<script src="FileSaver.js"></script>
 		<script src="snap.svg.js"></script>
+		<script>
+		Snap.plugin(function (Snap, Element, Paper, glob) {
+		    var elproto = Element.prototype;
+		
+		    elproto.toFront = function () {
+		        this.prependTo(this.parent());
+		    };
+		    elproto.toBack = function () {
+		        this.appendTo(this.parent());
+		    };
+		
+		})
+		</script>
 		<script src="main.js"></script>
 	</body>
 </html>
