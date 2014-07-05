@@ -58,7 +58,10 @@ function buildSVG() {
 
 function parseSVG() {
 	var images,
-		i;
+		rectGroups,
+		i,
+		rectGroup,
+		handle;
 
 	filterTint = s.filter(Snap.filter.hueRotate(90));
 
@@ -74,6 +77,14 @@ function parseSVG() {
 	for (i = 0; i < images.length; i += 1) {
 		images[i].drag();
 		images[i].click(handle_img_CLICK);
+	}
+	
+	rectGroups = Snap.selectAll('.physics-block');
+	for (i = 0; i < rectGroups.length; i += 1) {
+		rectGroup = rectGroups[i];
+		rectGroup.rect = rectGroup.select('.physics-frame');
+		handle = rectGroup.select('.physics-handle');
+		handle.group = rectGroup;
 	}
 }
 
@@ -120,7 +131,8 @@ function addRect() {
 	deselectRects();
 	
 	rectGroup = s.g();
-	rectGroup.transform('translate(' + mouse.x + ', ' + mouse.y + ')');
+	
+	rectGroup.transform('translate(' + (mouse.x - worldMatrix.e) + ', ' + (mouse.y - worldMatrix.f) + ')');
 	rectGroup.addClass('physics-block');
 	rectGroup.mousedown(handle_rectGroup_MOUSEDOWN);
 	rectGroup.drag();
@@ -132,6 +144,7 @@ function addRect() {
 		fill: 'rgba(255, 0, 0, 0.25)',
 		stroke: 'white'
 	});
+	rect.addClass('physics-frame');
 	rectGroup.rect = rect;
 	rectGroup.add(rect);
 	
@@ -139,8 +152,10 @@ function addRect() {
 	handle.transform('translate(' + (rect.attr('width') - (HANDLE_SIZE / 2)) + ', ' + (rect.attr('height') - (HANDLE_SIZE / 2)) + ')');
 	handle.attr({
 		fill: 'black',
-		stroke: '#ccc'
+		stroke: '#ccc',
+		cursor: 'pointer'
 	});
+	handle.addClass('physics-handle');
 	handle.group = rectGroup;
 	handle.drag();
 	handle.mousedown(handle_handle_MOUSEDOWN);
@@ -155,6 +170,7 @@ function deselectRects() {
 		i;
 	
 	for (i = 0; i < rectGroups.length; i += 1) {
+		console.log(rectGroups);
 		rectGroups[i].rect.attr({
 			stroke: 'rgba(255, 0, 0, 0.5)'
 		});
@@ -184,6 +200,8 @@ function handle_rectGroup_MOUSEDOWN() {
 	this.rect.attr({
 		stroke: 'rgba(255, 255, 255, 1)'
 	});
+	
+	//TODO:: move to front
 }
 
 function handle_physicsLayer_CLICK() {
@@ -327,7 +345,7 @@ function handle_FILE_LOAD(e) {
 	parseSVG();
 	
 	matrix = worldGroup.attr('transform').localMatrix;
-	worldMatrix.translate(matrix.e, matrix.f);
+	worldMatrix.translate(matrix.e, matrix.f);	
 }
 
 function handle_jsonButton_CLICK() {
@@ -396,6 +414,7 @@ function handle_KEY_DOWN(e) {
 			if (CMD == true) {
 				e.preventDefault();
 				deleteImage();
+				//TODO:: allow to delete physics block too
 			}
 		break;
 		case 77: //M
